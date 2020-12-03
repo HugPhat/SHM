@@ -21,7 +21,7 @@ def make_test_dataset(path, mode):
     Returns:
         [list]: [image, trimap, alpha]
     """
-    if mode == 'test':
+    if mode == 'test' or mode=='eval':
         txt = os.path.join(path, 'val.txt')
     else:
         txt = os.path.join(path, 'train.txt')
@@ -61,7 +61,7 @@ class TestDataset(data.Dataset):
 
 class TestDatasetDataLoader(object):
     def __init__(self, root, mode, batch_size):
-        assert mode in ['pretrain_tnet', 'pretrain_mnet', 'end_to_end', 'test']
+        assert mode in ['pretrain_tnet', 'pretrain_mnet', 'end_to_end', 'test', 'eval']
 
         if mode == 'pretrain_tnet':
             transforms = [

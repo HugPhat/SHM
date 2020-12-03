@@ -4,6 +4,7 @@ ngpu: 1
 
 tnet_checkpoint: checkpoint-epoch.pth
 savedir : ./
+eval : True
 backbone: resnet50
 data_root: data/dataset
 batch_size: 8

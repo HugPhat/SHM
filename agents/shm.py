@@ -27,6 +27,10 @@ class SHMAgent(object):
 
         self.model = create_shm(backbone=config.backbone)
         self.data_loader = Data_loader(self.config.data_root, self.config.mode, self.config.batch_size)
+        if self.config.eval:
+            self.eval_loader = Data_loader(
+                self.config.data_root, 'eval', self.config.batch_size)
+
         self.current_epoch = 0
         self.cuda = torch.cuda.is_available() & self.config.cuda
 
@@ -47,7 +51,7 @@ class SHMAgent(object):
             'optimizer': self.optimizer.state_dict(),
         }
         if filename is None:
-            filename = 'checkpoint-epoch{}.pth.tar'.format(self.current_epoch)
+            filename = 'checkpoint-epoch{}.pth'.format(self.current_epoch)
         torch.save(state, os.path.join(self.config.checkpoint_dir, filename))
 
     def load_checkpoint(self):
@@ -145,11 +149,11 @@ class SHMAgent(object):
         sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
         for epoch in range(self.current_epoch, self.config.max_epoch):
             self.model.train()
-
+            ########################## Train ############################
             loss_t_epoch = AverageMeter()
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
-                               desc="Epoch-{}-".format(self.current_epoch + 1))
+                               desc="Train epoch-{}-".format(self.current_epoch + 1))
 
             for image, trimap_gt, _ in tqdm_loader:
                 image, trimap_gt = image.to(self.device), trimap_gt.to(self.device)
@@ -161,12 +165,32 @@ class SHMAgent(object):
                 self.optimizer.step()
 
                 loss_t_epoch.update(loss_t.item())
-                desc = 'Epoch-{}/ {}: loss {} ||'.format(
+                desc = 'Train epoch-{}/ {}: loss {} ||'.format(
                     self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val)
                 tqdm_loader.set_description(desc)
+            self.writer.add_scalar('pretrain_tnet/loss_classification', loss_t_epoch.val, self.current_epoch+1)
+            ########################## Eval ############################
+            if self.config.eval:
+                self.model.eval()
+                loss_v_epoch = AverageMeter()
+                tqdm_loader = tqdm(self.eval_loader.train_loader,
+                                   total=self.eval_loader.train_iterations,
+                                    desc="Validate epoch-{}-".format(self.current_epoch + 1))
+                for image, trimap_gt, _ in tqdm_loader:
+                    image, trimap_gt = image.to(
+                        self.device), trimap_gt.to(self.device)
+                    #self.optimizer.zero_grad()
+                    with torch.no_grad():
+                        trimap_pre = self.model(image)
+                    loss_t = self.loss_t(trimap_pre, trimap_gt)
+                    loss_v_epoch.update(loss_t.item())
+                    desc = 'Validate epoch-{}/ {}: loss {} ||'.format(
+                        self.current_epoch + 1, self.config.max_epoch, loss_v_epoch.val)
+                    tqdm_loader.set_description(desc)
+                self.writer.add_scalar(
+                    'pretrain_tnet/eval_loss_classification', loss_v_epoch.val, self.current_epoch)
+            
             self.current_epoch += 1
-
-            self.writer.add_scalar('pretrain_tnet/loss_classification', loss_t_epoch.val, self.current_epoch)
             if self.current_epoch % self.config.sample_period == 0:
                 self.model.eval()
                 with torch.no_grad():
@@ -183,6 +207,7 @@ class SHMAgent(object):
                 self.save_checkpoint()
             print("Training Results at epoch-" + str(self.current_epoch) + " | " +
                   "loss_classification: " + str(loss_t_epoch.val))
+            print('#'*16)
 
     def train_mnet(self):
         self.model = self.model.mnet
@@ -201,21 +226,24 @@ class SHMAgent(object):
         sample_trimap_gt = sample_trimap_gt.float()
         for epoch in range(self.current_epoch, self.config.max_epoch):
             self.model.train()
+            ########################## Train ############################
             loss_p_epoch = AverageMeter()
             loss_alpha_epoch = AverageMeter()
             loss_comps_epoch = AverageMeter()
 
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
-                               desc="Epoch-{}-".format(self.current_epoch + 1))
+                               desc="Train epoch-{}-".format(self.current_epoch + 1))
             for image, trimap_gt, alpha_gt in tqdm_loader:
                 image, trimap_gt, alpha_gt = image.to(self.device), trimap_gt.float().to(self.device), alpha_gt.to(self.device)
 
                 input = torch.cat([image, trimap_gt], dim=1)
-                alpha_pre = self.model(input)
-                loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
 
                 self.optimizer.zero_grad()
+                alpha_pre = self.model(input)
+
+                loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
+
                 loss_p.backward()
                 self.optimizer.step()
 
@@ -223,11 +251,66 @@ class SHMAgent(object):
                 loss_alpha_epoch.update(loss_alpha.item())
                 loss_comps_epoch.update(loss_comps.item())
 
+                desc = 'Train epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {} ||'.format(
+                                        self.current_epoch + 1, 
+                                        self.config.max_epoch, 
+                                        loss_p_epoch.val,
+                                        loss_alpha_epoch.val,
+                                        loss_comps_epoch.val,
+                                )
+                tqdm_loader.set_description(desc)
+
+            self.writer.add_scalar(
+                'pretrain_mnet/loss_prediction', loss_p_epoch.val, self.current_epoch+1)
+            self.writer.add_scalar(
+                'pretrain_mnet/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch+1)
+            self.writer.add_scalar(
+                'pretrain_mnet/loss_composition', loss_comps_epoch.val, self.current_epoch+1)
+            
+            ########################## Eval ############################
+            if self.config.eval:
+                self.model.eval()
+                
+                vloss_p_epoch = AverageMeter()
+                vloss_alpha_epoch = AverageMeter()
+                vloss_comps_epoch = AverageMeter()
+
+                tqdm_loader = tqdm(self.eval_loader.train_loader,
+                                   total=self.eval_loader.train_iterations,
+                                   desc="Validate epoch-{}-".format(self.current_epoch + 1))
+                for image, trimap_gt, alpha_gt in tqdm_loader:
+
+                    image, trimap_gt, alpha_gt = image.to(self.device), trimap_gt.float().to(self.device), alpha_gt.to(self.device)
+                    input = torch.cat([image, trimap_gt], dim=1)
+
+                    with torch.no_grad():
+                        alpha_pre = self.model(input)
+
+                    loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
+                    
+                    vloss_p_epoch.update(loss_p.item())
+                    vloss_alpha_epoch.update(loss_alpha.item())
+                    vloss_comps_epoch.update(loss_comps.item())
+
+                    desc = 'Validate epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {} ||'.format(
+                                        self.current_epoch + 1, 
+                                        self.config.max_epoch, 
+                                        vloss_p_epoch.val,
+                                        vloss_alpha_epoch.val,
+                                        vloss_comps_epoch.val,
+                                )
+                    tqdm_loader.set_description(desc)
+
+                self.writer.add_scalar(
+                    'pretrain_mnet/eval_loss_prediction', vloss_p_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'pretrain_mnet/eval_loss_alpha_prediction', vloss_alpha_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'pretrain_mnet/eval_loss_composition', vloss_comps_epoch.val, self.current_epoch + 1)
+
             self.current_epoch += 1
 
-            self.writer.add_scalar('pretrain_mnet/loss_prediction', loss_p_epoch.val, self.current_epoch)
-            self.writer.add_scalar('pretrain_mnet/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch)
-            self.writer.add_scalar('pretrain_mnet/loss_composition', loss_comps_epoch.val, self.current_epoch)
+            
             if self.current_epoch % self.config.sample_period == 0:
                 self.model.eval()
                 with torch.no_grad():
@@ -246,6 +329,7 @@ class SHMAgent(object):
             print("Training Results at epoch-" + str(self.current_epoch) + " | " +
                   "loss_prediction: " + str(loss_p_epoch.val) + " loss_alpha_prediction: " +
                   str(loss_alpha_epoch.val) + " loss_composition: " + str(loss_comps_epoch.val))
+            print('#'*16)
 
     def train_end_to_end(self):
         self.loss_p = PredictionL1Loss()
@@ -262,6 +346,7 @@ class SHMAgent(object):
             self.model = nn.DataParallel(self.model, device_ids=list(range(self.config.ngpu)))
 
         sample_image, sample_trimap_gt, sample_alpha_gt = make_sample(self.config.mode)
+        ########################## Train ############################
         for epoch in range(self.current_epoch, self.config.max_epoch):
             self.model.train()
             loss_epoch = AverageMeter()
@@ -272,15 +357,15 @@ class SHMAgent(object):
 
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
-                               desc="Epoch-{}-".format(self.current_epoch+1))
+                               desc="Train epoch-{}-".format(self.current_epoch+1))
             for image, trimap_gt, alpha_gt in tqdm_loader:
                 image, trimap_gt, alpha_gt = image.to(self.device), trimap_gt.to(self.device), alpha_gt.to(self.device)
+                self.optimizer.zero_grad()
                 trimap_pre, alpha_pre = self.model(image)
                 loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
                 loss_t = self.loss_t(trimap_pre, trimap_gt)
                 loss = loss_p + self.config.loss_lambda * loss_t
 
-                self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
 
@@ -289,14 +374,76 @@ class SHMAgent(object):
                 loss_alpha_epoch.update(loss_alpha.item())
                 loss_comps_epoch.update(loss_comps.item())
                 loss_t_epoch.update(loss_t.item())
-
-            self.current_epoch += 1
+                
+                desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {} ||'.format(
+                    self.current_epoch + 1,
+                    self.config.max_epoch,
+                    loss_epoch.val,
+                    loss_p_epoch.val,
+                    loss_alpha_epoch.val,
+                    loss_comps_epoch.val,
+                    loss_t_epoch.val
+                )
+                tqdm_loader.set_description(desc)
 
             self.writer.add_scalar('end_to_end/loss', loss_epoch.val, self.current_epoch)
             self.writer.add_scalar('end_to_end/loss_prediction', loss_p_epoch.val, self.current_epoch)
             self.writer.add_scalar('end_eo_end/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch)
             self.writer.add_scalar('end_to_end/loss_composition', loss_comps_epoch.val, self.current_epoch)
             self.writer.add_scalar('end_to_end/loss_classification', loss_t_epoch.val, self.current_epoch)
+            
+            ########################## Eval ############################
+            if self.config.eval:
+                self.model.eval()
+
+                vloss_epoch = AverageMeter()
+                vloss_p_epoch = AverageMeter()
+                vloss_alpha_epoch = AverageMeter()
+                vloss_comps_epoch = AverageMeter()
+                vloss_t_epoch = AverageMeter()
+
+                tqdm_loader = tqdm(self.eval_loader.train_loader,
+                                   total=self.eval_loader.train_iterations,
+                                   desc="Validate epoch-{}-".format(self.current_epoch + 1))
+
+                for image, trimap_gt, alpha_gt in tqdm_loader:
+                    image, trimap_gt, alpha_gt = image.to(self.device), trimap_gt.to(self.device), alpha_gt.to(self.device)
+                    #
+                    trimap_pre, alpha_pre = self.model(image)
+                    loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
+                    loss_t = self.loss_t(trimap_pre, trimap_gt)
+                    loss = loss_p + self.config.loss_lambda * loss_t
+
+                    vloss_epoch.update(loss.item())
+                    vloss_p_epoch.update(loss_p.item())
+                    vloss_alpha_epoch.update(loss_alpha.item())
+                    vloss_comps_epoch.update(loss_comps.item())
+                    vloss_t_epoch.update(loss_t.item())
+                    
+                    desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {} ||'.format(
+                        self.current_epoch + 1,
+                        self.config.max_epoch,
+                        vloss_epoch.val,
+                        vloss_p_epoch.val,
+                        vloss_alpha_epoch.val,
+                        vloss_comps_epoch.val,
+                        vloss_t_epoch.val
+                    )
+                    tqdm_loader.set_description(desc)
+
+                self.writer.add_scalar(
+                    'end_to_end/loss', vloss_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'end_to_end/loss_prediction', vloss_p_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'end_eo_end/loss_alpha_prediction', vloss_alpha_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'end_to_end/loss_composition', vloss_comps_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'end_to_end/loss_classification', vloss_t_epoch.val, self.current_epoch + 1)
+
+            
+            self.current_epoch += 1
             if self.current_epoch % self.config.sample_period == 0:
                 self.model.eval()
                 with torch.no_grad():
@@ -322,7 +469,7 @@ class SHMAgent(object):
                   "loss: " + str(loss_epoch.val) + " loss_prediction: " + str(loss_p_epoch.val) +
                   " loss_alpha_prediction: " + str(loss_alpha_epoch.val) + " loss_composition: " +
                   str(loss_comps_epoch.val) + " loss_classification: " + str(loss_t_epoch.val))
-
+            print('#'*16)
     def test(self):
         self.load_checkpoint()
 
