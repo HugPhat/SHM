@@ -27,6 +27,7 @@ def make_test_dataset(path, mode):
         txt = os.path.join(path, 'train.txt')
     with open(txt, 'r') as f:
         data = f.read().split('\n')
+    data.pop(-1)
     items = []
     for each in data:
         image = os.path.join(path, 'input', each)
