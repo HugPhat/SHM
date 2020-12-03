@@ -114,7 +114,7 @@ class TestDatasetDataLoader(object):
 
 if __name__ == '__main__':
     data_loader = TestDataset(
-        '/root/datasets/Matting/Adobe_DIM', 'pretrain_mnet', 4).train_loader
+        '/data/datasets', 'pretrain_tnet', 4).train_loader
     image, trimap, alpha = next(iter(data_loader))
     print(image.size(), trimap.size(), alpha.size())
     print(image)
