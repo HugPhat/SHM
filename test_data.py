@@ -16,7 +16,7 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
 
-    data_loader = TestDataset(
+    data_loader = TestDatasetDataLoader(
         args.inpdir, args.type, 4).train_loader
     image, trimap, alpha = next(iter(data_loader))
     print(image.size(), trimap.size(), alpha.size())
