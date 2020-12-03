@@ -3,6 +3,7 @@ cuda: true
 ngpu: 2
 
 mnet_checkpoint: checkpoint-epoch.pth
+checkpoint_name : mnet.pth
 savedir : ./
 eval : True
 data_root: data/dataset

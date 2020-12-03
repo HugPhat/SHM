@@ -3,15 +3,16 @@ cuda: true
 ngpu: 1
 
 tnet_checkpoint: checkpoint-epoch.pth
+checkpoint_name : tnet.pth # set None to save by period
 savedir : ./
 eval : True
 backbone: resnet50
 data_root: data/dataset
-batch_size: 8
-lr: 0.0001
+batch_size: 12
+lr: 0.0005
 weight_decay: 0.0005
 max_epoch: 50
 loss_lambda: 0.01    # trade-off between prediction loss and classification loss
 
 sample_period: 1
-checkpoint_period: 5
+checkpoint_period: 1

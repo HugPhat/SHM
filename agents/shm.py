@@ -204,7 +204,7 @@ class SHMAgent(object):
                                os.path.join(self.config.out_dir, 'sample_trimap_{}.png'.format(self.current_epoch)),
                                nrow=1, padding=0)
             if self.current_epoch % self.config.checkpoint_period == 0:
-                self.save_checkpoint()
+                self.save_checkpoint(filename=self.config.checkpoint_name)
             print("Training Results at epoch-" + str(self.current_epoch) + " | " +
                   "loss_classification: " + str(loss_t_epoch.val))
             print('#'*16)
@@ -325,7 +325,7 @@ class SHMAgent(object):
                                os.path.join(self.config.out_dir, 'sample_alpha_{}.png'.format(self.current_epoch)),
                                nrow=1, padding=0)
             if self.current_epoch % self.config.checkpoint_period == 0:
-                self.save_checkpoint()
+                self.save_checkpoint(filename=self.config.checkpoint_name)
             print("Training Results at epoch-" + str(self.current_epoch) + " | " +
                   "loss_prediction: " + str(loss_p_epoch.val) + " loss_alpha_prediction: " +
                   str(loss_alpha_epoch.val) + " loss_composition: " + str(loss_comps_epoch.val))
@@ -464,7 +464,7 @@ class SHMAgent(object):
                                os.path.join(self.config.out_dir, 'sample_alpha_{}.png'.format(self.current_epoch)),
                                nrow=1, padding=0)
             if self.current_epoch % self.config.checkpoint_period == 0:
-                self.save_checkpoint()
+                self.save_checkpoint(filename=self.config.checkpoint_name)
             print("Training Results at epoch-" + str(self.current_epoch) + " | " +
                   "loss: " + str(loss_epoch.val) + " loss_prediction: " + str(loss_p_epoch.val) +
                   " loss_alpha_prediction: " + str(loss_alpha_epoch.val) + " loss_composition: " +
