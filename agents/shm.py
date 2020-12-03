@@ -6,11 +6,11 @@ import torch.optim as optim
 from torch.backends import cudnn
 from torchvision.utils import make_grid, save_image
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 from models.shm import create_shm
 from models.loss import PredictionL1Loss, ClassificationLoss
-from datasets.adobe_dim import AdobeDIMDataLoader
+from datasets.test_data import TestDatasetDataLoader as Data_loader
 from utils.metrics import AverageMeter
 from utils.misc import print_cuda_statistics
 from utils.data import make_sample
@@ -26,7 +26,7 @@ class SHMAgent(object):
         self.logger.info("Creating SHM architecture and loading pretrained weights...")
 
         self.model = create_shm(backbone=config.backbone)
-        self.data_loader = AdobeDIMDataLoader(self.config.data_root, self.config.mode, self.config.batch_size)
+        self.data_loader = Data_loader(self.config.data_root, self.config.mode, self.config.batch_size)
         self.current_epoch = 0
         self.cuda = torch.cuda.is_available() & self.config.cuda
 
@@ -142,7 +142,7 @@ class SHMAgent(object):
         if self.cuda and self.config.ngpu > 1:
             self.model = nn.DataParallel(self.model, device_ids=list(range(self.config.ngpu)))
 
-        sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
+        #sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
         for epoch in range(self.current_epoch, self.config.max_epoch):
             self.model.train()
 

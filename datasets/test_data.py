@@ -49,7 +49,6 @@ class TestDataset(data.Dataset):
         image = cv2.imread(image_name, cv2.IMREAD_COLOR)
         trimap = cv2.imread(trimap_name, cv2.IMREAD_GRAYSCALE)
         alpha = cv2.imread(alpha_name, cv2.IMREAD_GRAYSCALE)
-
         if self.transforms is not None:
             for transform in self.transforms:
                 image, trimap, alpha = transform(image, trimap, alpha)

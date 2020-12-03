@@ -92,5 +92,5 @@ class dummy_arg:
         self.trainsplit = 0.8
         
 if __name__ == "__main__":
-    dummy = dummy_arg()
+    dummy = get_args() # dummy_arg()
     main(dummy)
