@@ -60,7 +60,7 @@ class TestDataset(data.Dataset):
 
 
 class TestDatasetDataLoader(object):
-    def __init__(self, root, mode, batch_size):
+    def __init__(self, root, mode, batch_size, eval=False):
         assert mode in ['pretrain_tnet', 'pretrain_mnet', 'end_to_end', 'test', 'eval']
 
         if mode == 'pretrain_tnet':
@@ -70,7 +70,11 @@ class TestDatasetDataLoader(object):
                 extended_transforms.Normalize(),
                 extended_transforms.NumpyToTensor()
             ]
-            train_set = TestDataset(root, mode, transforms)
+            if eval:
+                train_set = TestDataset(root, 'eval', transforms)
+            else:
+                train_set = TestDataset(root, mode, transforms)
+            
             self.train_loader = data.DataLoader(
                 train_set, batch_size=batch_size, shuffle=True, num_workers=4)
             self.train_iterations = int(math.ceil(len(train_set) / batch_size))

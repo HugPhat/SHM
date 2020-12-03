@@ -29,7 +29,7 @@ class SHMAgent(object):
         self.data_loader = Data_loader(self.config.data_root, self.config.mode, self.config.batch_size)
         if self.config.eval:
             self.eval_loader = Data_loader(
-                self.config.data_root, 'eval', self.config.batch_size)
+                self.config.data_root, self.config.mode, self.config.batch_size, True)
 
         self.current_epoch = 0
         self.cuda = torch.cuda.is_available() & self.config.cuda
