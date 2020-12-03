@@ -142,7 +142,7 @@ class SHMAgent(object):
         if self.cuda and self.config.ngpu > 1:
             self.model = nn.DataParallel(self.model, device_ids=list(range(self.config.ngpu)))
 
-        #sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
+        sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
         for epoch in range(self.current_epoch, self.config.max_epoch):
             self.model.train()
 

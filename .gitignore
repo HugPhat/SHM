@@ -138,7 +138,5 @@ dmypy.json
 .idea/
 .pyc/
 experiments/
-*.png
-*.jpg
-data/dataset/train.txt
-data/dataset/val.txt
+data/dataset/**/*.png
+data/dataset/**/*.txt
