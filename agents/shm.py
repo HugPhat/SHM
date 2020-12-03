@@ -79,11 +79,11 @@ class SHMAgent(object):
                     self.optimizer.load_state_dict(checkpoint['optimizer'])
                     return
                 if self.config.tnet_checkpoint is not None:
-                    filename = os.path.join('experiment', 'tnet', 'checkpoints', self.config.tnet_checkpoint)
+                    filename = os.path.join(self.config.savedir,'experiment', 'tnet', 'checkpoints', self.config.tnet_checkpoint)
                     checkpoint = torch.load(filename)
                     self.model.tnet.load_state_dict(checkpoint['state_dict'])
                 if self.config.mnet_checkpoint is not None:
-                    filename = os.path.join('experiment', 'mnet', 'checkpoints', self.config.mnet_checkpoint)
+                    filename = os.path.join(self.config.savedir,'experiment', 'mnet', 'checkpoints', self.config.mnet_checkpoint)
                     checkpoint = torch.load(filename)
                     self.model.mnet.load_state_dict(checkpoint['state_dict'])
             elif self.config.mode == 'test':
@@ -94,11 +94,11 @@ class SHMAgent(object):
                     self.model.load_state_dict(checkpoint['state_dict'])
                     return
                 if self.config.tnet_checkpoint is not None:
-                    filename = os.path.join('experiment', 'tnet', 'checkpoints', self.config.tnet_checkpoint)
+                    filename = os.path.join(self.config.savedir,'experiment', 'tnet', 'checkpoints', self.config.tnet_checkpoint)
                     checkpoint = torch.load(filename)
                     self.model.tnet.load_state_dict(checkpoint['state_dict'])
                 if self.config.mnet_checkpoint is not None:
-                    filename = os.path.join('experiment', 'mnet', 'checkpoints', self.config.mnet_checkpoint)
+                    filename = os.path.join(self.config.savedir,'experiment', 'mnet', 'checkpoints', self.config.mnet_checkpoint)
                     checkpoint = torch.load(filename)
                     self.model.mnet.load_state_dict(checkpoint['state_dict'])
         except OSError as e:

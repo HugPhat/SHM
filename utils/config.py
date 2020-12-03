@@ -60,26 +60,26 @@ def process_config(yaml_file):
 
     # create some important directories to be used for that experiments
     if config.mode == 'pretrain_tnet':
-        config.summary_dir = os.path.join('experiments', 'tnet', 'summaries/')
-        config.checkpoint_dir = os.path.join('experiments', 'tnet', 'checkpoints/')
-        config.out_dir = os.path.join('experiments', 'tnet', 'out/')
-        config.log_dir = os.path.join('experiments', 'tnet', 'logs/')
+        config.summary_dir = os.path.join(config.savedir, 'experiments', 'tnet', 'summaries/')
+        config.checkpoint_dir = os.path.join(config.savedir, 'experiments', 'tnet', 'checkpoints/')
+        config.out_dir = os.path.join(config.savedir, 'experiments', 'tnet', 'out/')
+        config.log_dir = os.path.join(config.savedir, 'experiments', 'tnet', 'logs/')
         create_dirs([config.summary_dir, config.checkpoint_dir, config.out_dir, config.log_dir])
     elif config.mode == 'pretrain_mnet':
-        config.summary_dir = os.path.join('experiments', 'mnet', 'summaries/')
-        config.checkpoint_dir = os.path.join('experiments', 'mnet', 'checkpoints/')
-        config.out_dir = os.path.join('experiments', 'mnet', 'out/')
-        config.log_dir = os.path.join('experiments', 'mnet', 'logs/')
+        config.summary_dir = os.path.join(config.savedir, 'experiments', 'mnet', 'summaries/')
+        config.checkpoint_dir = os.path.join(config.savedir, 'experiments', 'mnet', 'checkpoints/')
+        config.out_dir = os.path.join(config.savedir, 'experiments', 'mnet', 'out/')
+        config.log_dir = os.path.join(config.savedir, 'experiments', 'mnet', 'logs/')
         create_dirs([config.summary_dir, config.checkpoint_dir, config.out_dir, config.log_dir])
     elif config.mode == 'end_to_end':
-        config.summary_dir = os.path.join('experiments', 'shm', 'summaries/')
-        config.checkpoint_dir = os.path.join('experiments', 'shm', 'checkpoints/')
-        config.out_dir = os.path.join('experiments', 'shm', 'out/')
-        config.log_dir = os.path.join('experiments', 'shm', 'logs/')
+        config.summary_dir = os.path.join(config.savedir, 'experiments', 'shm', 'summaries/')
+        config.checkpoint_dir = os.path.join(config.savedir, 'experiments', 'shm', 'checkpoints/')
+        config.out_dir = os.path.join(config.savedir, 'experiments', 'shm', 'out/')
+        config.log_dir = os.path.join(config.savedir, 'experiments', 'shm', 'logs/')
         create_dirs([config.summary_dir, config.checkpoint_dir, config.out_dir, config.log_dir])
     elif config.mode == 'test':
-        config.out_dir = os.path.join('experiments', 'test', 'out/')
-        config.log_dir = os.path.join('experiments', 'test', 'logs/')
+        config.out_dir = os.path.join(config.savedir, 'experiments', 'test', 'out/')
+        config.log_dir = os.path.join(config.savedir, 'experiments', 'test', 'logs/')
         create_dirs([config.out_dir, config.log_dir])
     else:
         raise Exception('Please choose a proper experiment mode')

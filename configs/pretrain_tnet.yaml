@@ -3,6 +3,7 @@ cuda: true
 ngpu: 1
 
 tnet_checkpoint: checkpoint-epoch.pth
+savedir : ./
 backbone: resnet50
 data_root: data/dataset
 batch_size: 8
