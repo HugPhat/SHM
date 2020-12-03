@@ -161,7 +161,7 @@ class SHMAgent(object):
                 self.optimizer.step()
 
                 loss_t_epoch.update(loss_t.item())
-                desc = 'Epoch-{}/ {}: loss '.format(
+                desc = 'Epoch-{}/ {}: loss {} ||'.format(
                     self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val)
                 tqdm_loader.set_description(desc)
             self.current_epoch += 1
