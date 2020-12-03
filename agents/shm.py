@@ -153,15 +153,17 @@ class SHMAgent(object):
 
             for image, trimap_gt, _ in tqdm_loader:
                 image, trimap_gt = image.to(self.device), trimap_gt.to(self.device)
+                self.optimizer.zero_grad()
                 trimap_pre = self.model(image)
                 loss_t = self.loss_t(trimap_pre, trimap_gt)
-
-                self.optimizer.zero_grad()
+                
                 loss_t.backward()
                 self.optimizer.step()
 
                 loss_t_epoch.update(loss_t.item())
-
+                desc = 'Epoch-{}/ {}: loss '.format(
+                    self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val)
+                tqdm_loader.set_description(desc)
             self.current_epoch += 1
 
             self.writer.add_scalar('pretrain_tnet/loss_classification', loss_t_epoch.val, self.current_epoch)
