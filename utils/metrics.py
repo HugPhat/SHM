@@ -61,12 +61,13 @@ import torch
 
 def error(preds, targets):
     preds2label = torch.argmax(preds, dim=1)
-    bs, w, h = targets.size()
+    bs,_,w, h = targets.size()
     delta = (torch.ne(torch.flatten(targets),
                       torch.flatten(preds2label))) 
-    delta = delta.type(torch.cuda.FloatTensor) if preds.is_cuda() else delta.type(torch.FloatTensor)
+    delta = delta.type(torch.cuda.FloatTensor) if preds.is_cuda else delta.type(torch.FloatTensor)
     delta = delta.sum() / (bs*w*h)
-    return delta.cpu().items()
+
+    return delta.cpu().item()
     
 def accuracy(preds, targets):
     return 1. - error(preds, targets)

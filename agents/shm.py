@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from models.shm import create_shm
 from models.loss import PredictionL1Loss, ClassificationLoss
 from datasets.test_data import TestDatasetDataLoader as Data_loader
-from utils.metrics import AverageMeter
+from utils.metrics import AverageMeter, accuracy
 from utils.misc import print_cuda_statistics
 from utils.data import make_sample
 
@@ -152,6 +152,7 @@ class SHMAgent(object):
             self.model.train()
             ########################## Train ############################
             loss_t_epoch = AverageMeter()
+            acc_t_epoch = AverageMeter()
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
                                desc="Train epoch-{}-".format(self.current_epoch + 1))
@@ -161,13 +162,14 @@ class SHMAgent(object):
                 self.optimizer.zero_grad()
                 trimap_pre = self.model(image)
                 loss_t = self.loss_t(trimap_pre, trimap_gt)
-                
+                acc = accuracy(trimap_pre, trimap_gt)
                 loss_t.backward()
                 self.optimizer.step()
 
+                acc_t_epoch.update(round(acc, 3))
                 loss_t_epoch.update(loss_t.item())
-                desc = 'Train epoch-{}/ {}: loss {} ||'.format(
-                    self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val)
+                desc = 'Train epoch-{}/ {}: loss {} , acc {}||'.format(
+                    self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val, acc_t_epoch.val)
                 tqdm_loader.set_description(desc)
             self.writer.add_scalar('pretrain_tnet/loss_classification', loss_t_epoch.val, self.current_epoch+1)
             ########################## Eval ############################
