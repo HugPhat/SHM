@@ -2,7 +2,7 @@ import os
 import argparse
 from tqdm import tqdm
 
-
+import random
 
 def get_args():
     parser = argparse.ArgumentParser(description='gen data folder')
@@ -19,6 +19,7 @@ def get_args():
 
 def main(args):
     items = os.listdir(args.inpdir)
+    random.shuffle(items)
     train_txt = open(os.path.join(args.savedir, 'train.txt'), 'w')
     val_txt   = open(os.path.join(args.savedir, 'val.txt'), 'w')
 
@@ -38,4 +39,4 @@ def main(args):
 
 if __name__ == "__main__":
     args = get_args()
-    main()
+    main(args)

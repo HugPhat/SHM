@@ -1,6 +1,6 @@
 model : tnet # tnet mnet end2end
 backbone: resnet50
-pretrained_tnet: None # path to pretrained weight
+pretrained_tnet: ../../content/drive/MyDrive/AI_Colab/SHM/experiments/tnet/checkpoints/tnet.pth # path to pretrained weight
 pretrained_mnet: None
 pretrained_end2end: None
 cuda : True

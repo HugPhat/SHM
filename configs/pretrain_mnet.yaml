@@ -4,7 +4,7 @@ ngpu: 2
 
 mnet_checkpoint: checkpoint-epoch.pth
 checkpoint_name : mnet.pth
-savedir : ./
+savedir : ../../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
 data_root: data/dataset
 batch_size: 32
@@ -14,4 +14,4 @@ max_epoch: 50
 loss_lambda: 0.01    # trade-off between prediction loss and classification loss
 
 sample_period: 1
-checkpoint_period: 5
+checkpoint_period: 1
