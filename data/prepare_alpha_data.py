@@ -5,6 +5,8 @@ import random
 from tqdm import tqdm
 
 import sys
+import warnings
+warnings.filterwarnings('ignore')
 
 sys.path.insert(0, os.getcwd())
 

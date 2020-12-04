@@ -1,3 +1,4 @@
+import warnings
 import os
 import argparse
 import random
@@ -12,6 +13,8 @@ sys.path.insert(0, os.getcwd())
 
 import data.gen_trimap as gen_trimap
 from data.composite_bg import composite_data_with_voc_bg
+
+warnings.filterwarnings('ignore')
 
 def get_args():
     parser = argparse.ArgumentParser(description='gen data folder')

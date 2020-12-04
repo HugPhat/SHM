@@ -15,11 +15,10 @@ from utils.data import make_image_to_infer, tensor_2_npImage
 cudnn.benchmark = True
 
 
-class SHMAgent(object):
+class SHMInf(object):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.logger = logging.getLogger("SHMAgent")
         print(
             "Creating SHM architecture and loading pretrained weights...")
 
