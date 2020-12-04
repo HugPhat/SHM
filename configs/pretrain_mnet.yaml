@@ -1,6 +1,6 @@
 mode: pretrain_mnet
 cuda: true
-ngpu: 2
+ngpu: 1
 
 mnet_checkpoint: mnet.pth
 checkpoint_name : mnet.pth
