@@ -17,13 +17,13 @@ def get_args():
 def erode_dilate(msk, struc="ELLIPSE", size=(10, 10)):
     if struc == "RECT":
         dkernel = cv2.getStructuringElement(cv2.MORPH_RECT, size)
-        ekernel = cv2.getStructuringElement(cv2.MORPH_RECT, tuple(map(lambda h: h+3, size)))
+        ekernel = cv2.getStructuringElement(cv2.MORPH_RECT, tuple(map(lambda h: h-3, size)))
     elif struc == "CORSS":
         dkernel = cv2.getStructuringElement(cv2.MORPH_CROSS, size)
-        ekernel = cv2.getStructuringElement(cv2.MORPH_CROSS, tuple(map(lambda h: h+3, size)))
+        ekernel = cv2.getStructuringElement(cv2.MORPH_CROSS, tuple(map(lambda h: h-3, size)))
     else:
         dkernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, size)
-        ekernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, tuple(map(lambda h: h+3, size)))
+        ekernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, tuple(map(lambda h: h-3, size)))
 
     #msk = msk.astype(np.float32)
     msk[msk > 0] = 255
