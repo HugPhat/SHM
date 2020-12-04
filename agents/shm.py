@@ -167,15 +167,17 @@ class SHMAgent(object):
                 self.optimizer.step()
 
                 acc_t_epoch.update(round(acc, 3))
-                loss_t_epoch.update(loss_t.item())
+                loss_t_epoch.update(round(loss_t.item(), 3))
                 desc = 'Train epoch-{}/ {}: loss {} , acc {}||'.format(
                     self.current_epoch + 1, self.config.max_epoch, loss_t_epoch.val, acc_t_epoch.val)
                 tqdm_loader.set_description(desc)
             self.writer.add_scalar('pretrain_tnet/loss_classification', loss_t_epoch.val, self.current_epoch+1)
+            self.writer.add_scalar('pretrain_tnet/accuracy', acc_t_epoch.val, self.current_epoch+1)
             ########################## Eval ############################
             if self.config.eval:
                 self.model.eval()
                 loss_v_epoch = AverageMeter()
+                acc_v_epoch = AverageMeter()
                 tqdm_loader = tqdm(self.eval_loader.train_loader,
                                    total=self.eval_loader.train_iterations,
                                     desc="Validate epoch-{}-".format(self.current_epoch + 1))
@@ -186,12 +188,16 @@ class SHMAgent(object):
                     with torch.no_grad():
                         trimap_pre = self.model(image)
                     loss_t = self.loss_t(trimap_pre, trimap_gt)
-                    loss_v_epoch.update(loss_t.item())
-                    desc = 'Validate epoch-{}/ {}: loss {} ||'.format(
-                        self.current_epoch + 1, self.config.max_epoch, loss_v_epoch.val)
+                    acc = accuracy(trimap_pre, trimap_gt)
+                    loss_v_epoch.update(round( loss_t.item(), 3 ))
+                    acc_v_epoch.updater(round(acc, 3))
+                    desc = 'Validate epoch-{}/ {}: loss {} , acc {} ||'.format(
+                        self.current_epoch + 1, self.config.max_epoch, loss_v_epoch.val, acc_v_epoch.val)
                     tqdm_loader.set_description(desc)
                 self.writer.add_scalar(
-                    'pretrain_tnet/eval_loss_classification', loss_v_epoch.val, self.current_epoch)
+                    'pretrain_tnet/eval_loss_classification', loss_v_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'pretrain_tnet/eval_accuracy', acc_v_epoch.val, self.current_epoch + 1)
             
             self.current_epoch += 1
             if self.current_epoch % self.config.sample_period == 0:
@@ -200,6 +206,9 @@ class SHMAgent(object):
                     sample_image = sample_image.to(self.device)
                     sample_trimap_pre = self.model(sample_image)
                     sample_trimap_pre = self.trimap_to_image(sample_trimap_pre.cpu())
+                    loss_t_ = self.loss_t(sample_trimap_pre, sample_trimap_gt.to(self.device))
+                    acc_t_ = accuracy(sample_trimap_pre, sample_trimap_gt.to(self.device))
+                    print(f'Test sample: loss={round(loss_t_.item(), 3)}, acc : {round(acc_t_, 3)}')
                     self.writer.add_image('pretrain_tnet/sample_trimap_prediction',
                                           make_grid(sample_trimap_pre, nrow=1),
                                           self.current_epoch)
@@ -233,6 +242,7 @@ class SHMAgent(object):
             loss_p_epoch = AverageMeter()
             loss_alpha_epoch = AverageMeter()
             loss_comps_epoch = AverageMeter()
+            acc_t_epoch = AverageMeter()
 
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
@@ -244,22 +254,23 @@ class SHMAgent(object):
 
                 self.optimizer.zero_grad()
                 alpha_pre = self.model(input)
-
+                acc = round(accuracy(alpha_pre, alpha_gt))
                 loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
 
                 loss_p.backward()
                 self.optimizer.step()
 
-                loss_p_epoch.update(loss_p.item())
-                loss_alpha_epoch.update(loss_alpha.item())
-                loss_comps_epoch.update(loss_comps.item())
-
-                desc = 'Train epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {} ||'.format(
+                loss_p_epoch.update(round(loss_p.item(), 3))
+                loss_alpha_epoch.update(round(loss_alpha.item(), 3))
+                loss_comps_epoch.update(round(loss_comps.item(), 3))
+                acc_t_epoch.update(acc)
+                desc = 'Train epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {}, acc {} ||'.format(
                                         self.current_epoch + 1, 
                                         self.config.max_epoch, 
                                         loss_p_epoch.val,
                                         loss_alpha_epoch.val,
                                         loss_comps_epoch.val,
+                                        acc_t_epoch.val,
                                 )
                 tqdm_loader.set_description(desc)
 
@@ -269,6 +280,8 @@ class SHMAgent(object):
                 'pretrain_mnet/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch+1)
             self.writer.add_scalar(
                 'pretrain_mnet/loss_composition', loss_comps_epoch.val, self.current_epoch+1)
+            self.writer.add_scalar(
+                'pretrain_mnet/accuracy', acc_t_epoch.val, self.current_epoch+1)
             
             ########################## Eval ############################
             if self.config.eval:
@@ -277,7 +290,7 @@ class SHMAgent(object):
                 vloss_p_epoch = AverageMeter()
                 vloss_alpha_epoch = AverageMeter()
                 vloss_comps_epoch = AverageMeter()
-
+                acc_v_epoch = AverageMeter()
                 tqdm_loader = tqdm(self.eval_loader.train_loader,
                                    total=self.eval_loader.train_iterations,
                                    desc="Validate epoch-{}-".format(self.current_epoch + 1))
@@ -289,18 +302,20 @@ class SHMAgent(object):
                     with torch.no_grad():
                         alpha_pre = self.model(input)
 
+                    acc = round(accuracy(alpha_pre, alpha_gt))
                     loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
                     
-                    vloss_p_epoch.update(loss_p.item())
-                    vloss_alpha_epoch.update(loss_alpha.item())
-                    vloss_comps_epoch.update(loss_comps.item())
-
-                    desc = 'Validate epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {} ||'.format(
+                    vloss_p_epoch.update(round(loss_p.item(), 3))
+                    vloss_alpha_epoch.update(round(loss_alpha.item(), 3))
+                    vloss_comps_epoch.update(round(loss_comps.item(), 3))
+                    acc_v_epoch.update(acc)
+                    desc = 'Validate epoch-{}/ {}: lossp {}, loss alpha {}, loss comps {}, acc {} ||'.format(
                                         self.current_epoch + 1, 
                                         self.config.max_epoch, 
                                         vloss_p_epoch.val,
                                         vloss_alpha_epoch.val,
                                         vloss_comps_epoch.val,
+                                        acc_v_epoch.val
                                 )
                     tqdm_loader.set_description(desc)
 
@@ -310,6 +325,8 @@ class SHMAgent(object):
                     'pretrain_mnet/eval_loss_alpha_prediction', vloss_alpha_epoch.val, self.current_epoch + 1)
                 self.writer.add_scalar(
                     'pretrain_mnet/eval_loss_composition', vloss_comps_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'pretrain_mnet/eval_accuracy', acc_v_epoch.val, self.current_epoch + 1)
 
             self.current_epoch += 1
 
@@ -320,7 +337,15 @@ class SHMAgent(object):
                     sample_input = torch.cat((sample_image, sample_trimap_gt), dim=1)
                     sample_input = sample_input.to(self.device)
                     sample_alpha_pre = self.model(sample_input)
+
+                    _loss_p, _loss_alpha, _loss_comps = self.loss_p(
+                        sample_input, sample_alpha_pre, sample_alpha_gt.to(self.device))
+                    acc_t_ = accuracy(sample_alpha_pre,
+                                      sample_alpha_gt.to(self.device))
+                    print(
+                        f'Test sample: lossp= {round(_loss_p.item(), 3)}, loss_alpha= {round(_loss_alpha.item(), 3)}, loss_comps= {round(_loss_comps.item(), 3)}, acc= {round(acc_t_, 3)}')
                     sample_alpha_pre = self.alpha_to_image(sample_alpha_pre.cpu())
+
                     self.writer.add_image('pretrain_mnet/sample_alpha_prediction',
                                           make_grid(sample_alpha_pre, nrow=1),
                                           self.current_epoch)
@@ -357,7 +382,8 @@ class SHMAgent(object):
             loss_alpha_epoch = AverageMeter()
             loss_comps_epoch = AverageMeter()
             loss_t_epoch = AverageMeter()
-
+            acc_alp_epoch = AverageMeter()
+            acc_tri_epoch = AverageMeter()
             tqdm_loader = tqdm(self.data_loader.train_loader,
                                total=self.data_loader.train_iterations,
                                desc="Train epoch-{}-".format(self.current_epoch+1))
@@ -368,7 +394,8 @@ class SHMAgent(object):
                 loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
                 loss_t = self.loss_t(trimap_pre, trimap_gt)
                 loss = loss_p + self.config.loss_lambda * loss_t
-
+                acc_tri = round(accuracy(trimap_pre, trimap_gt), 3)
+                acc_alp = round(accuracy(alpha_pre, alpha_gt), 3)
                 loss.backward()
                 self.optimizer.step()
 
@@ -377,23 +404,29 @@ class SHMAgent(object):
                 loss_alpha_epoch.update(loss_alpha.item())
                 loss_comps_epoch.update(loss_comps.item())
                 loss_t_epoch.update(loss_t.item())
-                
-                desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {} ||'.format(
+
+                acc_tri_epoch.update(acc_tri)
+                acc_alp_epoch.update(acc_alp)
+                desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {}, acc_tri {}, acc_alp {} ||'.format(
                     self.current_epoch + 1,
                     self.config.max_epoch,
                     loss_epoch.val,
                     loss_p_epoch.val,
                     loss_alpha_epoch.val,
                     loss_comps_epoch.val,
-                    loss_t_epoch.val
+                    loss_t_epoch.val,
+                    acc_tri_epoch.val,
+                    acc_alp_epoch.val
                 )
                 tqdm_loader.set_description(desc)
 
-            self.writer.add_scalar('end_to_end/loss', loss_epoch.val, self.current_epoch)
-            self.writer.add_scalar('end_to_end/loss_prediction', loss_p_epoch.val, self.current_epoch)
-            self.writer.add_scalar('end_eo_end/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch)
-            self.writer.add_scalar('end_to_end/loss_composition', loss_comps_epoch.val, self.current_epoch)
-            self.writer.add_scalar('end_to_end/loss_classification', loss_t_epoch.val, self.current_epoch)
+            self.writer.add_scalar('end_to_end/loss', loss_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_to_end/loss_prediction', loss_p_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_eo_end/loss_alpha_prediction', loss_alpha_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_to_end/loss_composition', loss_comps_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_to_end/loss_classification', loss_t_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_to_end/acc_tri', acc_tri_epoch.val, self.current_epoch + 1)
+            self.writer.add_scalar('end_to_end/acc_alp', acc_alp_epoch.val, self.current_epoch + 1)
             
             ########################## Eval ############################
             if self.config.eval:
@@ -404,7 +437,8 @@ class SHMAgent(object):
                 vloss_alpha_epoch = AverageMeter()
                 vloss_comps_epoch = AverageMeter()
                 vloss_t_epoch = AverageMeter()
-
+                acc_alp_epoch = AverageMeter()
+                acc_tri_epoch = AverageMeter()
                 tqdm_loader = tqdm(self.eval_loader.train_loader,
                                    total=self.eval_loader.train_iterations,
                                    desc="Validate epoch-{}-".format(self.current_epoch + 1))
@@ -417,41 +451,69 @@ class SHMAgent(object):
                     loss_t = self.loss_t(trimap_pre, trimap_gt)
                     loss = loss_p + self.config.loss_lambda * loss_t
 
+                    acc_tri = round(accuracy(trimap_pre, trimap_gt), 3)
+                    acc_alp = round(accuracy(alpha_pre, alpha_gt), 3)
+                    
                     vloss_epoch.update(loss.item())
                     vloss_p_epoch.update(loss_p.item())
                     vloss_alpha_epoch.update(loss_alpha.item())
                     vloss_comps_epoch.update(loss_comps.item())
                     vloss_t_epoch.update(loss_t.item())
                     
-                    desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {} ||'.format(
+                    acc_tri_epoch.update(acc_tri)
+                    acc_alp_epoch.update(acc_alp)
+                    desc = 'Train epoch-{}/ {}: loss {}, lossp {}, loss alpha {}, loss comps {}, loss t {}, acc_tri {}, acc_alp {} ||'.format(
                         self.current_epoch + 1,
                         self.config.max_epoch,
                         vloss_epoch.val,
                         vloss_p_epoch.val,
                         vloss_alpha_epoch.val,
                         vloss_comps_epoch.val,
-                        vloss_t_epoch.val
+                        vloss_t_epoch.val,
+                        acc_tri_epoch.val,
+                        acc_alp_epoch.val
                     )
                     tqdm_loader.set_description(desc)
 
                 self.writer.add_scalar(
-                    'end_to_end/loss', vloss_epoch.val, self.current_epoch + 1)
+                    'end_to_end/eval_loss', vloss_epoch.val, self.current_epoch + 1)
                 self.writer.add_scalar(
-                    'end_to_end/loss_prediction', vloss_p_epoch.val, self.current_epoch + 1)
+                    'end_to_end/eval_loss_prediction', vloss_p_epoch.val, self.current_epoch + 1)
                 self.writer.add_scalar(
-                    'end_eo_end/loss_alpha_prediction', vloss_alpha_epoch.val, self.current_epoch + 1)
+                    'end_eo_end/eval_loss_alpha_prediction', vloss_alpha_epoch.val, self.current_epoch + 1)
                 self.writer.add_scalar(
-                    'end_to_end/loss_composition', vloss_comps_epoch.val, self.current_epoch + 1)
+                    'end_to_end/eval_loss_composition', vloss_comps_epoch.val, self.current_epoch + 1)
                 self.writer.add_scalar(
-                    'end_to_end/loss_classification', vloss_t_epoch.val, self.current_epoch + 1)
-
+                    'end_to_end/eval_loss_classification', vloss_t_epoch.val, self.current_epoch + 1)
+                self.writer.add_scalar(
+                    'end_to_end/eval_acc_tri', acc_tri_epoch.val, self.current_epoch +1)
+                self.writer.add_scalar('end_to_end/eval_acc_alp',
+                                   acc_alp_epoch.val, self.current_epoch +1)
             
             self.current_epoch += 1
             if self.current_epoch % self.config.sample_period == 0:
                 self.model.eval()
                 with torch.no_grad():
                     sample_image = sample_image.to(self.device)
+                    sample_trimap_gt = sample_trimap_gt.to(self.device)
+                    sample_alpha_gt = sample_alpha_gt.to(self.device)
+
                     sample_trimap_pre, sample_alpha_pre = self.model(sample_image)
+                    loss_p, loss_alpha, loss_comps = self.loss_p(
+                        sample_image, sample_alpha_pre, sample_alpha_gt)
+                    loss_t = self.loss_t(sample_trimap_pre, sample_trimap_gt)
+                    loss = loss_p + self.config.loss_lambda * loss_t
+                    
+                    acc_tri = round(
+                        accuracy(sample_trimap_pre, sample_trimap_gt), 3)
+                    acc_alp = round(
+                        accuracy(sample_alpha_pre, sample_alpha_gt), 3)
+                    print(
+                        f'Test sample: loss= {round(loss.item(), 3)}, lossp= {round(loss_p.item(), 3)}, \
+                        loss_alpha= {round(loss_alpha.item(), 3)}, \
+                        loss_comps= {round(loss_comps.item(), 3)}, \
+                        acc_tri= {round(acc_tri, 3)} \
+                        acc_alp= {round(acc_alp, 3)}')
                     sample_trimap_pre = self.trimap_to_image(sample_trimap_pre.cpu())
                     sample_alpha_pre = self.alpha_to_image(sample_alpha_pre.cpu())
                     self.writer.add_image('sample_trimap_prediction',
