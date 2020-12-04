@@ -46,13 +46,13 @@ class PSPNet(nn.Module):
         super().__init__()
         self.feats = getattr(extractors, backend)(pretrained)
         self.psp = PSPModule(psp_size, 1024, sizes)
-        self.drop_1 = nn.Dropout2d(p=0.3)
+        self.drop_1 = nn.Dropout2d(p=0.35)
 
         self.up_1 = PSPUpsample(1024, 256)
         self.up_2 = PSPUpsample(256, 64)
         self.up_3 = PSPUpsample(64, 64)
 
-        self.drop_2 = nn.Dropout2d(p=0.25)
+        self.drop_2 = nn.Dropout2d(p=0.35)
         self.final = nn.Sequential(
             nn.Conv2d(64, n_classes, kernel_size=1),
             # nn.LogSoftmax()
