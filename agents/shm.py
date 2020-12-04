@@ -259,8 +259,8 @@ class SHMAgent(object):
 
                 self.optimizer.zero_grad()
                 alpha_pre = self.model(input)
-                acc = round(accuracy(alpha_pre, alpha_gt), 3)
                 loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
+                acc = round(accuracy((alpha_pre*255.).floor(), (255.0*alpha_gt).floor()), 3)
 
                 loss_p.backward()
                 self.optimizer.step()

@@ -9,11 +9,11 @@ class PredictionL1Loss(nn.Module):
         self.gamma = gamma
 
     def __call__(self, img, alpha_p, alpha_g):
-        l_alpha = F.l1_loss(alpha_p, alpha_g)
+        l_alpha = F.mse_loss(alpha_p, alpha_g, reduction='mean')
 
         fg_p = alpha_p.repeat(1, 3, 1, 1) * img
         fg_g = alpha_g.repeat(1, 3, 1, 1) * img
-        l_comps = F.l1_loss(fg_p, fg_g)
+        l_comps = F.mse_loss(fg_p, fg_g, reduction='mean')
 
         l_p = self.gamma * l_alpha + (1 - self.gamma) * l_comps
         return l_p, l_alpha, l_comps
