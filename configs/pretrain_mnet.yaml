@@ -2,13 +2,13 @@ mode: pretrain_mnet
 cuda: true
 ngpu: 2
 
-mnet_checkpoint: checkpoint-epoch.pth
+mnet_checkpoint: mnet.pth
 checkpoint_name : mnet.pth
 savedir : ../../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
 data_root: data/dataset
-batch_size: 32
-lr: 0.0001
+batch_size: 12
+lr: 0.0005
 weight_decay: 0.0005
 max_epoch: 50
 loss_lambda: 0.01    # trade-off between prediction loss and classification loss
