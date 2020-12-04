@@ -76,7 +76,7 @@ def main(args):
         with tqdm(total=len(items)) as bar:
             for i, each in enumerate(items):
                 # get full path of file
-                file = os.path.join(args.pubDir, each)
+                file = os.path.join(args.pubdir, each)
                 if args.prefix in each:
                     # to matte folder
                     to_ = 'mask'
