@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.backends import cudnn
-from tqdm import tqdm
+
 from torch.utils.tensorboard import SummaryWriter
 
 import numpy as np

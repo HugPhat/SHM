@@ -3,8 +3,8 @@ import warnings
 warnings.filterwarnings('ignore')
 from utils.config import *
 import cv2
-from agents import SHMInf
 
+from agents.shm_infer import SHMInf
 import matplotlib.pyplot as plt
 
 def main():
