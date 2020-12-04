@@ -148,7 +148,9 @@ class SHMAgent(object):
             self.model = nn.DataParallel(self.model, device_ids=list(range(self.config.ngpu)))
 
         sample_image, sample_trimap_gt, _ = make_sample(self.config.mode)
+        
         for epoch in range(self.current_epoch, self.config.max_epoch):
+            
             self.model.train()
             ########################## Train ############################
             loss_t_epoch = AverageMeter()
@@ -190,7 +192,7 @@ class SHMAgent(object):
                     loss_t = self.loss_t(trimap_pre, trimap_gt)
                     acc = accuracy(trimap_pre, trimap_gt)
                     loss_v_epoch.update(round( loss_t.item(), 3 ))
-                    acc_v_epoch.updater(round(acc, 3))
+                    acc_v_epoch.update(round(acc, 3))
                     desc = 'Validate epoch-{}/ {}: loss {} , acc {} ||'.format(
                         self.current_epoch + 1, self.config.max_epoch, loss_v_epoch.val, acc_v_epoch.val)
                     tqdm_loader.set_description(desc)
@@ -205,10 +207,12 @@ class SHMAgent(object):
                 with torch.no_grad():
                     sample_image = sample_image.to(self.device)
                     sample_trimap_pre = self.model(sample_image)
-                    sample_trimap_pre = self.trimap_to_image(sample_trimap_pre.cpu())
+
                     loss_t_ = self.loss_t(sample_trimap_pre, sample_trimap_gt.to(self.device))
                     acc_t_ = accuracy(sample_trimap_pre, sample_trimap_gt.to(self.device))
                     print(f'Test sample: loss={round(loss_t_.item(), 3)}, acc : {round(acc_t_, 3)}')
+                    
+                    sample_trimap_pre = self.trimap_to_image(sample_trimap_pre.cpu())
                     self.writer.add_image('pretrain_tnet/sample_trimap_prediction',
                                           make_grid(sample_trimap_pre, nrow=1),
                                           self.current_epoch)

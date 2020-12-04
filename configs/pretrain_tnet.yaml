@@ -4,7 +4,7 @@ ngpu: 1
 
 tnet_checkpoint: tnet.pth
 checkpoint_name : tnet.pth # set None to save by period
-savedir : ../../content/drive/MyDrive/AI_Colab/SHM/
+savedir : ./# ./../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
 backbone: resnet50
 data_root: data/dataset
