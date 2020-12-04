@@ -6,6 +6,7 @@ mnet_checkpoint: mnet.pth
 checkpoint_name : mnet.pth
 savedir : ../../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
+backbone: resnet50
 data_root: data/dataset
 batch_size: 12
 lr: 0.0005
