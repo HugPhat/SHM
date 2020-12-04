@@ -168,19 +168,32 @@ def make_image_to_infer(mode, image: np.ndarray, trimap: np.ndarray =None):
     Returns:
         Tensor
     """
-    transforms = []
-    if mode == 'tnet' or mode == 'end2end':
-        transforms = [Normalize(), NumpyToTensor()]
-    elif mode == 'mnet':
+    timage = image.copy()
+
+    h, w, c = image.shape
+    # norm
+    timage = (timage.astype(np.float32) - (114., 121., 134.,)) / 255.0
+    timage = torch.from_numpy(timage.transpose((2, 0, 1))).view(c, h, w).float()
+    #if mode == 'tnet' or mode == 'end2end':
+    if mode == 'mnet':
         if type(trimap) == None:
             raise Exception ('[trimap] is required in mnet mode ')
-        transforms = [Normalize(), TrimapToCategorical(), NumpyToTensor()]
-    timage = image.copy()
-    for transform in transforms:
-        timage= transform(image)
-    if mode == 'mnet':
+        trimap[trimap == 0] = 0
+        trimap[trimap == 128] = 1
+        trimap[trimap == 255] = 2
+        trimap = np.array(trimap, dtype=np.int)
+        input_shape = trimap.shape
+        trimap = trimap.ravel()
+        n = trimap.shape[0]
+        categorical = np.zeros((3, n), dtype=np.long)
+        categorical[trimap, np.arange(n)] = 1
+        output_shape = (3,) + input_shape
+        categorical = np.reshape(categorical, output_shape)
+        trimap = torch.from_numpy(categorical).view(-1, h, w).long()
+        
         timage = torch.cat(
             (timage, trimap), dim=1)
+
     return timage.unsqueeze_(0)
 
 def make_sample(mode, sample_dir='sample/'):
