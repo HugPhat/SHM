@@ -241,6 +241,7 @@ class SHMAgent(object):
         sample_image, sample_trimap_gt, sample_alpha_gt = make_sample(self.config.mode)
         sample_trimap_gt = sample_trimap_gt.float()
         for epoch in range(self.current_epoch, self.config.max_epoch):
+            """
             self.model.train()
             ########################## Train ############################
             loss_p_epoch = AverageMeter()
@@ -258,7 +259,7 @@ class SHMAgent(object):
 
                 self.optimizer.zero_grad()
                 alpha_pre = self.model(input)
-                acc = round(accuracy(alpha_pre, alpha_gt))
+                acc = round(accuracy(alpha_pre, alpha_gt), 3)
                 loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
 
                 loss_p.backward()
@@ -286,7 +287,7 @@ class SHMAgent(object):
                 'pretrain_mnet/loss_composition', loss_comps_epoch.val, self.current_epoch+1)
             self.writer.add_scalar(
                 'pretrain_mnet/accuracy', acc_t_epoch.val, self.current_epoch+1)
-            
+            """
             ########################## Eval ############################
             if self.config.eval:
                 self.model.eval()
@@ -295,10 +296,10 @@ class SHMAgent(object):
                 vloss_alpha_epoch = AverageMeter()
                 vloss_comps_epoch = AverageMeter()
                 acc_v_epoch = AverageMeter()
-                tqdm_loader = tqdm(self.eval_loader.train_loader,
+                vtqdm_loader = tqdm(self.eval_loader.train_loader,
                                    total=self.eval_loader.train_iterations,
                                    desc="Validate epoch-{}-".format(self.current_epoch + 1))
-                for image, trimap_gt, alpha_gt in tqdm_loader:
+                for image, trimap_gt, alpha_gt in vtqdm_loader:
 
                     image, trimap_gt, alpha_gt = image.to(self.device), trimap_gt.float().to(self.device), alpha_gt.to(self.device)
                     input = torch.cat([image, trimap_gt], dim=1)
@@ -306,7 +307,7 @@ class SHMAgent(object):
                     with torch.no_grad():
                         alpha_pre = self.model(input)
 
-                    acc = round(accuracy(alpha_pre, alpha_gt))
+                    acc = round(accuracy(alpha_pre, alpha_gt), 3)
                     loss_p, loss_alpha, loss_comps = self.loss_p(image, alpha_pre, alpha_gt)
                     
                     vloss_p_epoch.update(round(loss_p.item(), 3))
@@ -321,7 +322,7 @@ class SHMAgent(object):
                                         vloss_comps_epoch.val,
                                         acc_v_epoch.val
                                 )
-                    tqdm_loader.set_description(desc)
+                    vtqdm_loader.set_description(desc)
 
                 self.writer.add_scalar(
                     'pretrain_mnet/eval_loss_prediction', vloss_p_epoch.val, self.current_epoch + 1)
@@ -333,7 +334,7 @@ class SHMAgent(object):
                     'pretrain_mnet/eval_accuracy', acc_v_epoch.val, self.current_epoch + 1)
 
             self.current_epoch += 1
-
+            
             
             if self.current_epoch % self.config.sample_period == 0:
                 self.model.eval()
@@ -343,7 +344,10 @@ class SHMAgent(object):
                     sample_alpha_pre = self.model(sample_input)
 
                     _loss_p, _loss_alpha, _loss_comps = self.loss_p(
-                        sample_input, sample_alpha_pre, sample_alpha_gt.to(self.device))
+                        sample_image.to(self.device), 
+                        sample_alpha_pre, 
+                        sample_alpha_gt.to(self.device)
+                        )
                     acc_t_ = accuracy(sample_alpha_pre,
                                       sample_alpha_gt.to(self.device))
                     print(

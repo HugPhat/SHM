@@ -86,7 +86,11 @@ class TestDatasetDataLoader(object):
                 extended_transforms.TrimapToCategorical(),
                 extended_transforms.NumpyToTensor()
             ]
-            train_set = TestDataset(root, mode, transforms)
+            if eval:
+                train_set = TestDataset(root, 'eval', transforms)
+            else:
+                train_set = TestDataset(root, mode, transforms)
+            #train_set = TestDataset(root, mode, transforms)
             self.train_loader = data.DataLoader(
                 train_set, batch_size=batch_size, shuffle=True, num_workers=4)
             self.train_iterations = int(math.ceil(len(train_set) / batch_size))
@@ -97,7 +101,11 @@ class TestDatasetDataLoader(object):
                 extended_transforms.Normalize(),
                 extended_transforms.NumpyToTensor()
             ]
-            train_set = TestDataset(root, mode, transforms)
+            if eval:
+                train_set = TestDataset(root, 'eval', transforms)
+            else:
+                train_set = TestDataset(root, mode, transforms)
+            #train_set = TestDataset(root, mode, transforms)
             self.train_loader = data.DataLoader(
                 train_set, batch_size=batch_size, shuffle=True, num_workers=4)
             self.train_iterations = int(math.ceil(len(train_set) / batch_size))
