@@ -102,7 +102,7 @@ def composite_data_with_voc_bg(voc_bg_root,
     for i in range(len(mask)):
       cv2.imwrite(os.path.join(out_masks_folder[i], name), mask[i])
 
-  with tqdm(total=len(input_data) * num_random_bg) as bar:
+  with tqdm(total=len(input_data) * (num_random_bg + 1)) as bar:
 
     for i in range(len(input_data)):
         inp, *masks = input_data[i]  # img, alpha, trimap if yes
