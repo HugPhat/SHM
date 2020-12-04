@@ -74,7 +74,7 @@ def composite_data_with_voc_bg(voc_bg_root,
   # read txt JPEG image of voc
   voc_bgs = make_voc_bg(voc_bg_root)
   out_image_folder = os.path.join(output_folder, 'input')
-  out_alpha_folder = os.path.join(output_folder, 'alpha')
+  out_alpha_folder = os.path.join(output_folder, 'mask')
   inp_images = [os.path.join(input_image_folder, each)
                 for each in os.listdir(input_image_folder)]
   inp_alphas = [os.path.join(input_alpha_folder, each)
