@@ -78,6 +78,8 @@ class PSPNet(nn.Module):
         p = self.up_3(p)
         p = self.drop_2(p)
 
+        p = self.final(p)
         # uxiliary = F.adaptive_max_pool2d(input=class_f, output_size=(1, 1)).view(-1, class_f.size(1))
-
-        return self.final(p)
+        trimap_softmax = F.softmax(p, dim=1)
+        
+        return trimap_softmax
