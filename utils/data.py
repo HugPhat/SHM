@@ -1,3 +1,5 @@
+from typing import Union, Optional, List, Tuple, Text, BinaryIO
+from torchvision.utils import make_grid
 import cv2
 import os
 import random
@@ -6,7 +8,6 @@ import shutil
 import torch
 import warnings
 warnings.filterwarnings('ignore')
-
 
 def erode_dilate(mask, size=(10, 10), smooth=True):
     if smooth:
@@ -128,6 +129,59 @@ def make_adobe_dim_dataset(root, mode):
 
     return items
 
+
+def tensor_2_npImage(
+    tensor: Union[torch.Tensor, List[torch.Tensor]],
+    nrow: int = 8,
+    padding: int = 2,
+    normalize: bool = False,
+    range: Optional[Tuple[int, int]] = None,
+    scale_each: bool = False,
+    pad_value: int = 0,
+) -> None:
+    """
+    This function is based on torchvision.utils save_image
+    Save a given Tensor into an image file.
+
+    Args:
+        tensor (Tensor or list): Image to be saved. If given a mini-batch tensor,
+            saves the tensor as a grid of images by calling ``make_grid``.
+        fp (string or file object): A filename or a file object
+        format(Optional):  If omitted, the format to use is determined from the filename extension.
+            If a file object was used instead of a filename, this parameter should always be used.
+        **kwargs: Other arguments are documented in ``make_grid``.
+    """
+    from PIL import Image
+    grid = make_grid(tensor, nrow=nrow, padding=padding, pad_value=pad_value,
+                     normalize=normalize, range=range, scale_each=scale_each)
+    # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
+    ndarr = grid.mul(255).add_(0.5).clamp_(0, 255).permute(
+        1, 2, 0).to('cpu', torch.uint8).numpy()
+    return ndarr
+
+def make_image_to_infer(mode, image: np.ndarray, trimap: np.ndarray =None):
+    """Transform/Normalize image to inference
+
+    Args:
+        mode ([str]): [tnet/end2end : RGB | mnet: RGB + trimap]
+        image (np.ndarray): [image]
+    Returns:
+        Tensor
+    """
+    transforms = []
+    if mode == 'tnet' or mode == 'end2end':
+        transforms = [Normalize(), NumpyToTensor()]
+    elif mode == 'mnet':
+        if type(trimap) == None:
+            raise Exception ('[trimap] is required in mnet mode ')
+        transforms = [Normalize(), TrimapToCategorical(), NumpyToTensor()]
+    timage = image.copy()
+    for transform in transforms:
+        timage= transform(image)
+    if mode == 'mnet':
+        timage = torch.cat(
+            (timage, trimap), dim=1)
+    return timage.unsqueeze_(0)
 
 def make_sample(mode, sample_dir='sample/'):
     image = cv2.imread(os.path.join(sample_dir, 'sample_image.png'), cv2.IMREAD_COLOR)

@@ -52,7 +52,7 @@ class PSPNet(nn.Module):
         self.up_2 = PSPUpsample(256, 64)
         self.up_3 = PSPUpsample(64, 64)
 
-        self.drop_2 = nn.Dropout2d(p=0.15)
+        self.drop_2 = nn.Dropout2d(p=0.25)
         self.final = nn.Sequential(
             nn.Conv2d(64, n_classes, kernel_size=1),
             # nn.LogSoftmax()

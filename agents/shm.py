@@ -133,6 +133,7 @@ class SHMAgent(object):
             self.logger.info('You have entered CTRL+C.. Wait to finalize')
             self.finalize()
 
+
     def train_tnet(self):
         self.model = self.model.tnet
         self.loss_t = ClassificationLoss()

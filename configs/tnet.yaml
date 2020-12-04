@@ -1,0 +1,5 @@
+model : tnet # tnet mnet end2end
+backbone: resnet50
+tnet_pretrained: None # path to pretrained weight
+mnet_pretrained: None
+end2end_pretrained: None
