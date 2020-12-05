@@ -157,7 +157,7 @@ def tensor_2_npImage(
     # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
     ndarr = grid.mul(255).add_(0.5).clamp_(0, 255).permute(
         1, 2, 0).to('cpu', torch.uint8).numpy()
-    return ndarr
+    return ndarr.astype('float32')
 
 def make_image_to_infer(mode, image: np.ndarray, trimap: np.ndarray =None):
     """Transform/Normalize image to inference
@@ -190,9 +190,8 @@ def make_image_to_infer(mode, image: np.ndarray, trimap: np.ndarray =None):
         output_shape = (3,) + input_shape
         categorical = np.reshape(categorical, output_shape)
         trimap = torch.from_numpy(categorical).view(-1, h, w).long()
-        
         timage = torch.cat(
-            (timage, trimap), dim=1)
+            (timage, trimap), dim=0)
 
     return timage.unsqueeze_(0)
 

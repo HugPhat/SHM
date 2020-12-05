@@ -1,0 +1,6 @@
+model : mnet # tnet mnet end2end
+backbone: resnet50
+pretrained_mnet: ../../content/drive/MyDrive/AI_Colab/SHM/experiments/mnet/checkpoints/mnet.pth # path to pretrained weight
+pretrained_tnet: None
+pretrained_end2end: None
+cuda : True

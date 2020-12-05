@@ -21,51 +21,51 @@ class MNet(nn.Module):
         super(MNet, self).__init__()
         # encoder
         # stage-1
-        self.conv_1_1 = nn.Sequential(nn.Conv2d(6, 64, 3, 1, 1, bias=True), nn.BatchNorm2d(64), nn.LeakyReLU())
-        self.conv_1_2 = nn.Sequential(nn.Conv2d(64, 64, 3, 1, 1, bias=True), nn.BatchNorm2d(64), nn.LeakyReLU())
+        self.conv_1_1 = nn.Sequential(nn.Conv2d(6, 64, 3, 1, 1, bias=False), nn.BatchNorm2d(64), nn.LeakyReLU())
+        self.conv_1_2 = nn.Sequential(nn.Conv2d(64, 64, 3, 1, 1, bias=False), nn.BatchNorm2d(64), nn.LeakyReLU())
         self.max_pooling_1 = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
         # stage-2
-        self.conv_2_1 = nn.Sequential(nn.Conv2d(64, 128, 3, 1, 1, bias=True), nn.BatchNorm2d(128), nn.LeakyReLU())
-        self.conv_2_2 = nn.Sequential(nn.Conv2d(128, 128, 3, 1, 1, bias=True), nn.BatchNorm2d(128), nn.LeakyReLU())
+        self.conv_2_1 = nn.Sequential(nn.Conv2d(64, 128, 3, 1, 1, bias=False), nn.BatchNorm2d(128), nn.LeakyReLU())
+        self.conv_2_2 = nn.Sequential(nn.Conv2d(128, 128, 3, 1, 1, bias=False), nn.BatchNorm2d(128), nn.LeakyReLU())
         self.max_pooling_2 = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
         # stage-3
-        self.conv_3_1 = nn.Sequential(nn.Conv2d(128, 256, 3, 1, 1, bias=True), nn.BatchNorm2d(256), nn.LeakyReLU())
-        self.conv_3_2 = nn.Sequential(nn.Conv2d(256, 256, 3, 1, 1, bias=True), nn.BatchNorm2d(256), nn.LeakyReLU())
-        self.conv_3_3 = nn.Sequential(nn.Conv2d(256, 256, 3, 1, 1, bias=True), nn.BatchNorm2d(256), nn.LeakyReLU())
+        self.conv_3_1 = nn.Sequential(nn.Conv2d(128, 256, 3, 1, 1, bias=False), nn.BatchNorm2d(256), nn.LeakyReLU())
+        self.conv_3_2 = nn.Sequential(nn.Conv2d(256, 256, 3, 1, 1, bias=False), nn.BatchNorm2d(256), nn.LeakyReLU())
+        self.conv_3_3 = nn.Sequential(nn.Conv2d(256, 256, 3, 1, 1, bias=False), nn.BatchNorm2d(256), nn.LeakyReLU())
         self.max_pooling_3 = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
         # stage-4
-        self.conv_4_1 = nn.Sequential(nn.Conv2d(256, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
-        self.conv_4_2 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
-        self.conv_4_3 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_4_1 = nn.Sequential(nn.Conv2d(256, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_4_2 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_4_3 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
         self.max_pooling_4 = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
         # stage-5
-        self.conv_5_1 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
-        self.conv_5_2 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
-        self.conv_5_3 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_5_1 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_5_2 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.conv_5_3 = nn.Sequential(nn.Conv2d(512, 512, 3, 1, 1, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
 
         # decoder
         # stage-5
-        self.deconv_5 = nn.Sequential(nn.Conv2d(512, 512, 5, 1, 2, bias=True), nn.BatchNorm2d(512), nn.LeakyReLU())
+        self.deconv_5 = nn.Sequential(nn.Conv2d(512, 512, 5, 1, 2, bias=False), nn.BatchNorm2d(512), nn.LeakyReLU())
 
         # stage-4
         self.up_pool_4 = nn.MaxUnpool2d(2, stride=2)
-        self.deconv_4 = nn.Sequential(nn.Conv2d(512, 256, 5, 1, 2, bias=True), nn.BatchNorm2d(256), nn.LeakyReLU())
+        self.deconv_4 = nn.Sequential(nn.Conv2d(512, 256, 5, 1, 2, bias=False), nn.BatchNorm2d(256), nn.LeakyReLU())
 
         # stage-3
         self.up_pool_3 = nn.MaxUnpool2d(2, stride=2)
-        self.deconv_3 = nn.Sequential(nn.Conv2d(256, 128, 5, 1, 2, bias=True), nn.BatchNorm2d(128), nn.LeakyReLU())
+        self.deconv_3 = nn.Sequential(nn.Conv2d(256, 128, 5, 1, 2, bias=False), nn.BatchNorm2d(128), nn.LeakyReLU())
 
         # stage-2
         self.up_pool_2 = nn.MaxUnpool2d(2, stride=2)
-        self.deconv_2 = nn.Sequential(nn.Conv2d(128, 64, 5, 1, 2, bias=True), nn.BatchNorm2d(64), nn.LeakyReLU())
+        self.deconv_2 = nn.Sequential(nn.Conv2d(128, 64, 5, 1, 2, bias=False), nn.BatchNorm2d(64), nn.LeakyReLU())
 
         # stage-1
         self.up_pool_1 = nn.MaxUnpool2d(2, stride=2)
-        self.deconv_1 = nn.Sequential(nn.Conv2d(64, 64, 5, 1, 2, bias=True), nn.BatchNorm2d(64), nn.LeakyReLU())
+        self.deconv_1 = nn.Sequential(nn.Conv2d(64, 64, 5, 1, 2, bias=False), nn.BatchNorm2d(64), nn.LeakyReLU())
 
         # stage-0
         self.conv_0 = nn.Conv2d(64, 1, 5, 1, 2, bias=True)
@@ -73,6 +73,7 @@ class MNet(nn.Module):
     def forward(self, input):
         # encoder
         _, trimap = torch.split(input, 3, dim=1)
+        bs,_, h,w = trimap.size()
         x11 = self.conv_1_1(input)
         x12 = self.conv_1_2(x11)
         x1p, id1 = self.max_pooling_1(x12)
@@ -106,8 +107,9 @@ class MNet(nn.Module):
 
         x2u = self.up_pool_2(x3d, id2)
         x2d = self.deconv_2(x2u)
-
+        #print(f'x2d {x2d.size()}')
         x1u = self.up_pool_1(x2d, id1)
+        #print(f'x1u {x1u.size()}')
         x1d = self.deconv_1(x1u)
 
         raw_alpha = self.conv_0(x1d)
@@ -116,7 +118,7 @@ class MNet(nn.Module):
         
         alpha_p = fs + us * raw_alpha
 
-        return alpha_p
+        return raw_alpha
 
 
 class SHM(nn.Module):

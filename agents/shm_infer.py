@@ -33,36 +33,46 @@ class SHMInf(object):
             self.device = torch.device("cpu")
             print("Operation will be on *****CPU***** ")
         self.load_checkpoint()
+        self.model.to(self.device)
         self.model.eval()
 
     def load_checkpoint(self):
         assert self.config.model in ['tnet',
-                                     'ment', 'end2end']
+                                     'mnet', 'end2end']
         try:
             if self.config.model == 'tnet':
                 self.model = self.model.tnet
                 if not self.config.pretrained_tnet is None:
+                  try:
                     self.model.load_state_dict(
-                        torch.load(self.config.pretrained_tnet))
-                    print(f'Loaded pretrained {self.config.model}')
+                          torch.load(self.config.pretrained_tnet)['state_dict'] )
+                  except:
+                    self.model.load_state_dict(
+                          torch.load(self.config.pretrained_tnet))
+                  print(f'Loaded pretrained {self.config.model}')
             elif self.config.model == 'mnet':
                 self.model = self.model.mnet     
                 if not self.config.pretrained_mnet is None:
+                  try:
                     self.model.load_state_dict(
-                        torch.load(self.config.pretrained_mnet))
-                    print(f'Loaded pretrained {self.config.model}')
+                          torch.load(self.config.pretrained_mnet)['state_dict'] )
+                  except:
+                    self.model.load_state_dict(
+                          torch.load(self.config.pretrained_mnet))
+                 
+                  print(f'Loaded pretrained {self.config.model}')
             elif self.config.model == 'end2end':
                 if not self.config.pretrained_end2end is None:
                     self.model.load_state_dict(
-                        torch.load(self.config.pretrained_end2end))
+                        torch.load(self.config.pretrained_end2end)['state_dict'])
                     print(f'Loaded pretrained {self.config.model}')
                 elif not self.config.pretrained_tnet is None:
                     self.model.tnet.load_state_dict(
-                        torch.load(self.config.pretrained_tnet))
+                        torch.load(self.config.pretrained_tnet)['state_dict'] )
                     print(f'Loaded pretrained tnet of {self.config.model}')
                 elif not self.config.pretrained_mnet is None:
                     self.model.tnet.load_state_dict(
-                        torch.load(self.config.pretrained_mnet))
+                        torch.load(self.config.pretrained_mnet)['state_dict'])
                     print(f'Loaded pretrained mnet of {self.config.model}')
 
             
@@ -94,6 +104,7 @@ class SHMInf(object):
         """
 
         Timage = make_image_to_infer(self.config.model, image, trimap)
+        #print(Timage.size())
         with torch.no_grad():
             Timage = Timage.to(self.device)
             output = self.model(Timage)
@@ -103,7 +114,7 @@ class SHMInf(object):
                 output.cpu())
             output = tensor_2_npImage(output, nrow=1, padding=0)
             return [output, None]
-        elif self.config.mode == 'mnet':
+        elif self.config.model == 'mnet':
             #alpha
             output = self.alpha_to_image(
                 output.cpu())
