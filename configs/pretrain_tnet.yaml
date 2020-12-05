@@ -2,13 +2,13 @@ mode: pretrain_tnet
 cuda: true
 ngpu: 1
 
-tnet_checkpoint: tnet.pth
-checkpoint_name : tnet.pth # set None to save by period
+tnet_checkpoint: Tnet.pth
+checkpoint_name : Tnet.pth # set None to save by period
 savedir : ./../../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
 backbone: resnet50
 data_root: data/dataset
-batch_size: 12
+batch_size: 10
 lr: 0.0005
 weight_decay: 0.0005
 max_epoch: 50
