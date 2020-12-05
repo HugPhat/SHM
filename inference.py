@@ -8,28 +8,7 @@ from agents.shm_infer import SHMInf
 import matplotlib.pyplot as plt
 import yaml 
 
-def main():
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument(
-        '--config',
-        default=None,
-        help='The Path of configuration file in yaml format')
-    arg_parser.add_argument(
-        '--img',
-        default=None,
-        help='The Path of image')
-    arg_parser.add_argument(
-        '--trimap',
-        default=None,
-        help='The Path of trimap')
-    args = arg_parser.parse_args()
-
-    with open(args.config, 'r') as config_file:
-      config_dict = yaml.load(config_file)
-      config = EasyDict(config_dict)
-    if config.model == 'mnet' and args.trimap == None:
-        raise AssertionError('trimap is require in mnet model')
-    
+def main(config):
     agent = SHMInf(config)
     img = cv2.imread(args.img)
     h,w = img.shape[:2]
@@ -47,7 +26,7 @@ def main():
         axarr[0].imshow(Img)
         axarr[1].imshow(Tri)
     elif type(Img) != None:
-        cv2.imwrite('img.jpg', (Img*255.).astype('uint8') )
+        cv2.imwrite('img.png', (Img).astype('uint8') )
         plt.imshow(Img)
     else:
         plt.imshow(Tri)
@@ -55,4 +34,24 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+  arg_parser = argparse.ArgumentParser()
+  arg_parser.add_argument(
+      '--config',
+      default=None,
+      help='The Path of configuration file in yaml format')
+  arg_parser.add_argument(
+      '--img',
+      default=None,
+      help='The Path of image')
+  arg_parser.add_argument(
+      '--trimap',
+      default=None,
+      help='The Path of trimap')
+  args = arg_parser.parse_args()
+
+  with open(args.config, 'r') as config_file:
+    config_dict = yaml.load(config_file)
+    config = EasyDict(config_dict)
+  if config.model == 'mnet' and args.trimap == None:
+      raise AssertionError('trimap is require in mnet model')
+  main(config)

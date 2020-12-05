@@ -102,7 +102,7 @@ class SHMInf(object):
         Returns:
             list(trimap, alpha)
         """
-
+        self.model.eval()
         Timage = make_image_to_infer(self.config.model, image, trimap)
         #print(Timage.size())
         with torch.no_grad():
@@ -116,9 +116,9 @@ class SHMInf(object):
             return [output, None]
         elif self.config.model == 'mnet':
             #alpha
-            output = self.alpha_to_image(
-                output.cpu())
-            output = tensor_2_npImage(output, nrow=1, padding=0)
+            output = self.alpha_to_image(output.cpu())
+            output = (output.squeeze(0)*255.).squeeze(0).numpy() #tensor_2_npImage(output, nrow=1, padding=0)
+            #output = tensor_2_npImage(self.alpha_to_image(output), nrow=1, padding=0)
             return [None, output]
         else:
             #matte, alpha
