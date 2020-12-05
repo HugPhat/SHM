@@ -20,12 +20,12 @@ class PredictionL1Loss(nn.Module):
 
 
 class ClassificationLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, w=None):
         super(ClassificationLoss, self).__init__()
-
+        self.w= w
     def __call__(self, trimap_p, trimap_g):
         n, _, h, w = trimap_p.size()
-        l_t = F.cross_entropy(trimap_p, trimap_g.view(n, h, w).long())
+        l_t = F.cross_entropy(trimap_p, trimap_g.view(n, h, w).long(), weight=self.w)
         return l_t
 
 
