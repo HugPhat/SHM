@@ -53,8 +53,8 @@ class TestDataset(data.Dataset):
         h, w = img.shape[:2]
         h = h-1 if h % 2 != 0 else h
         w = w-1 if w % 2 != 0 else w
-        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_CUBIC))
-        alpha = cv2.resize(alpha, (w, h), interpolation=cv2.INTER_CUBIC))
+        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_CUBIC)
+        alpha = cv2.resize(alpha, (w, h), interpolation=cv2.INTER_CUBIC)
         trimap = cv2.resize(trimap, (w, h), interpolation=cv2.INTER_NEAREST)
         if self.transforms is not None:
             for transform in self.transforms:
@@ -71,7 +71,7 @@ class TestDatasetDataLoader(object):
 
         if mode == 'pretrain_tnet':
             transforms = [
-                extended_transforms.RandomPatch(400),
+                #extended_transforms.RandomPatch(400),
                 extended_transforms.RandomFlip(),
                 extended_transforms.Normalize(),
                 extended_transforms.NumpyToTensor()
