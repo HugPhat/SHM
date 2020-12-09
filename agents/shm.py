@@ -217,6 +217,7 @@ class SHMAgent(object):
                     self.writer.add_image('pretrain_tnet/sample_trimap_prediction',
                                           make_grid(sample_trimap_pre, nrow=1),
                                           self.current_epoch)
+                    self.writer.add_graph(self.model, sample_image)
                     save_image(sample_trimap_pre,
                                os.path.join(self.config.out_dir, 'sample_trimap_{}.png'.format(self.current_epoch)),
                                nrow=1, padding=0)
@@ -354,7 +355,7 @@ class SHMAgent(object):
                     print(
                         f'Test sample: lossp= {round(_loss_p.item(), 3)}, loss_alpha= {round(_loss_alpha.item(), 3)}, loss_comps= {round(_loss_comps.item(), 3)}, acc= {round(acc_t_, 3)}')
                     sample_alpha_pre = self.alpha_to_image(sample_alpha_pre.cpu())
-
+                    self.writer.add_graph(self.model, sample_input)
                     self.writer.add_image('pretrain_mnet/sample_alpha_prediction',
                                           make_grid(sample_alpha_pre, nrow=1),
                                           self.current_epoch)
@@ -531,6 +532,7 @@ class SHMAgent(object):
                     self.writer.add_image('sample_alpha_prediction',
                                           make_grid(sample_alpha_pre, nrow=1),
                                           self.current_epoch)
+                    self.writer.add_graph(self.model, sample_image)
                     save_image(sample_trimap_pre,
                                os.path.join(self.config.out_dir, 'sample_trimap_{}.png'.format(self.current_epoch)),
                                nrow=1, padding=0)
