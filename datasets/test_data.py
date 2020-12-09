@@ -50,6 +50,12 @@ class TestDataset(data.Dataset):
         image = cv2.imread(image_name, cv2.IMREAD_COLOR)
         trimap = cv2.imread(trimap_name, cv2.IMREAD_GRAYSCALE)
         alpha = cv2.imread(alpha_name, cv2.IMREAD_GRAYSCALE)
+        h, w = img.shape[:2]
+        h = h-1 if h % 2 != 0 else h
+        w = w-1 if w % 2 != 0 else w
+        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_CUBIC))
+        alpha = cv2.resize(alpha, (w, h), interpolation=cv2.INTER_CUBIC))
+        trimap = cv2.resize(trimap, (w, h), interpolation=cv2.INTER_NEAREST)
         if self.transforms is not None:
             for transform in self.transforms:
                 image, trimap, alpha = transform(image, trimap, alpha)
