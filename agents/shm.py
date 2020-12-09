@@ -41,7 +41,7 @@ class SHMAgent(object):
             self.device = torch.device("cpu")
             self.logger.info("Operation will be on *****CPU***** ")
 
-        self.ce_loss_weight = torch.FloatTensor([0.58872014284134, 3.2375309467316, 1.0122526884079]).to(self.device)
+        self.ce_loss_weight = torch.FloatTensor([1.08872014284134, 5.2375309467316, 1.2122526884079]).to(self.device)
         self.writer = SummaryWriter(log_dir=self.config.summary_dir, comment='SHM')
 
     def save_checkpoint(self, filename=None):
@@ -136,7 +136,8 @@ class SHMAgent(object):
 
     def train_tnet(self):
         self.model = self.model.tnet
-        self.loss_t = ClassificationLoss(w=self.ce_loss_weight)
+        #self.loss_t = ClassificationLoss(w=self.ce_loss_weight)
+        self.loss_t = ClassificationLoss()
         self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),
                                     lr=self.config.lr, betas=(0.9, 0.999),
                                     weight_decay=self.config.weight_decay)

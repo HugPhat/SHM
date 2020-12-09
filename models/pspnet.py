@@ -45,14 +45,20 @@ class PSPNet(nn.Module):
                  pretrained=True):
         super().__init__()
         self.feats = getattr(extractors, backend)(pretrained)
-        self.psp = PSPModule(psp_size, 1024, sizes)
-        self.drop_1 = nn.Dropout2d(p=0.35)
+        if '18' in backend or '34' in backend:
+          _psp_size = 512
+        elif '50' in backend or '101' in backend:
+          _psp_size =  2048
+        else:
+          _psp_size = psp_size
+        self.psp = PSPModule(_psp_size, 1024, sizes)
+        self.drop_1 = nn.Dropout2d(p=0.15)
 
         self.up_1 = PSPUpsample(1024, 256)
         self.up_2 = PSPUpsample(256, 64)
         self.up_3 = PSPUpsample(64, 64)
 
-        self.drop_2 = nn.Dropout2d(p=0.35)
+        self.drop_2 = nn.Dropout2d(p=0.05)
         self.final = nn.Sequential(
             nn.Conv2d(64, n_classes, kernel_size=1),
             # nn.LogSoftmax()
