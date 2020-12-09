@@ -50,7 +50,7 @@ class TestDataset(data.Dataset):
         image = cv2.imread(image_name, cv2.IMREAD_COLOR)
         trimap = cv2.imread(trimap_name, cv2.IMREAD_GRAYSCALE)
         alpha = cv2.imread(alpha_name, cv2.IMREAD_GRAYSCALE)
-        h, w = img.shape[:2]
+        h, w = image.shape[:2]
         h = h-1 if h % 2 != 0 else h
         w = w-1 if w % 2 != 0 else w
         image = cv2.resize(image, (w, h), interpolation=cv2.INTER_CUBIC)
