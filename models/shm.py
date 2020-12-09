@@ -74,6 +74,7 @@ class MNet(nn.Module):
         # encoder
         _, trimap = torch.split(input, 3, dim=1)
         bs,_, h,w = trimap.size()
+        
         x11 = self.conv_1_1(input)
         x12 = self.conv_1_2(x11)
         x1p, id1 = self.max_pooling_1(x12)
@@ -118,7 +119,7 @@ class MNet(nn.Module):
         
         alpha_p = fs + us * raw_alpha
 
-        return raw_alpha
+        return alpha_p
 
 
 class SHM(nn.Module):
@@ -129,8 +130,8 @@ class SHM(nn.Module):
 
     def forward(self, x):
         trimap = self.tnet(x)
-        
-        # trimap_softmax.detach()
+        trimap_softmax = F.softmax(trimap, dim=1)
+        trimap_softmax.detach()
         #bs, us, fs = torch.split(trimap_softmax, 1, dim=1)
 
         mnet_input = torch.cat((x, trimap_softmax), dim=1)
