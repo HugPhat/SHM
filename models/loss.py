@@ -40,7 +40,7 @@ class dice_loss(nn.Module):
     def forward(self, pred, target):
         ch = target.size(1)  # index or one-hot-encoding
         if ch == 1:  # if index-> convert to OHE
-            one_hot_target = F.one_hot(target, self.nclss).permute(
+            one_hot_target = F.one_hot(target, self.n_clss).permute(
                 0, 4, 2, 3, 1).contiguous().squeeze(-1)
         else:
             one_hot_target = target
