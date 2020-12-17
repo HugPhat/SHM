@@ -8,6 +8,7 @@ savedir : ./../../content/drive/MyDrive/AI_Colab/SHM/
 eval : True
 backbone: resnet18
 data_root: data/dataset
+loss: dice # dice or ce
 batch_size: 10
 lr: 0.0001
 weight_decay: 0.001

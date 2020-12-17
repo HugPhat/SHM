@@ -9,7 +9,7 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 from models.shm import create_shm
-from models.loss import PredictionL1Loss, ClassificationLoss
+from models.loss import PredictionL1Loss, ClassificationLoss, dice_loss
 from datasets.test_data import TestDatasetDataLoader as Data_loader
 from utils.metrics import AverageMeter, accuracy
 from utils.misc import print_cuda_statistics
@@ -137,7 +137,14 @@ class SHMAgent(object):
     def train_tnet(self):
         self.model = self.model.tnet
         #self.loss_t = ClassificationLoss(w=self.ce_loss_weight)
-        self.loss_t = ClassificationLoss()
+        
+        if self.config.loss == 'dice':
+            self.logger.info('Using Dice loss for Tnet')
+            self.loss_t = dice_loss(3)
+        else:
+            self.logger.info('Using CrossEntropy loss for Tnet')
+            self.loss_t = ClassificationLoss()
+        
         self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),
                                     lr=self.config.lr, betas=(0.9, 0.999),
                                     weight_decay=self.config.weight_decay)
@@ -371,7 +378,15 @@ class SHMAgent(object):
 
     def train_end_to_end(self):
         self.loss_p = PredictionL1Loss()
-        self.loss_t = ClassificationLoss()
+        #self.loss_t = ClassificationLoss()
+        
+        if self.config.loss == 'dice':
+            self.logger.info('Using Dice loss for Tnet')
+            self.loss_t = dice_loss(3)
+        else:
+            self.logger.info('Using CrossEntropy loss for Tnet')
+            self.loss_t = ClassificationLoss()
+
         self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),
                                     lr=self.config.lr, betas=(0.9, 0.999),
                                     weight_decay=self.config.weight_decay)
