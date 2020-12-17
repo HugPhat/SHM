@@ -1,3 +1,4 @@
+from itertools import combinations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,6 +30,33 @@ class ClassificationLoss(nn.Module):
         l_t = F.cross_entropy(trimap_p, trimap_g.view(n, h, w).long(), weight=self.w)
         return l_t
 
+############### dice loss #########################
+
+class dice_loss(nn.Module):
+    def __init__(self, n_clss=3):
+        super(dice_loss, self).__init__()
+        self.n_clss = n_clss
+        self.eps = 1e-6
+    def forward(self, pred, target):
+        ch = target.size(1)  # index or one-hot-encoding
+        if ch == 1:  # if index-> convert to OHE
+            one_hot_target = F.one_hot(target, self.nclss).permute(
+                0, 4, 2, 3, 1).contiguous().squeeze(-1)
+        else:
+            one_hot_target = target
+
+        one_hot_target = one_hot_target.float()
+        probas = F.softmax(pred.float(), dim=1)
+
+        dims = (0,) + tuple(range(2, target.ndimension()))
+
+        intersection = torch.sum(one_hot_target * probas, dims) + self.eps
+
+        _sum = torch.sum(probas + one_hot_target, dims)
+
+        dice = ((2. * intersection) / (_sum - intersection + self.esp)).mean()
+
+        return dice
 
 if __name__ == '__main__':
     img = torch.rand(4, 3, 256, 256)
