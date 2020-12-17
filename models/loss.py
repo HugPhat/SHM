@@ -54,7 +54,7 @@ class dice_loss(nn.Module):
 
         _sum = torch.sum(probas + one_hot_target, dims)
 
-        dice = ((2. * intersection) / (_sum - intersection + self.esp)).mean()
+        dice = ((2. * intersection) / (_sum - intersection + self.eps)).mean()
 
         return dice
 
