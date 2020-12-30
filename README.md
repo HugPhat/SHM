@@ -2,7 +2,7 @@ A pytorch implementation of paper *Semantic Human Matting (ACM Multimedia 2018)*
 upgrade code from [repo](https://github.com/bluestyle97/semantic-human-matting)
 
 **Usage** <br>
-* Training: follow the instruction in [pretrained_tnet.yaml](./configs/pretrained_tnet.yaml) <br>
+* Training: follow the config in [pretrain_tnet.yaml](configs/pretrain_tnet.yaml) <br>
 *Explaination*
 ```
 mode: [pretrain_tnet, pretrained_mnet, end_to_end]
@@ -64,5 +64,5 @@ optional arguments:
 ```
 
 * Dataset: <br>
-    * Any public image data (VOC, COCO) combine with [Matting data](http://www.alphamatting.com/datasets/)
+    * Any public image data (VOC, COCO) combine with [Matting data](http://www.alphamatting.com/datasets.php)
     * With other matting dataset, you **should** use script to *create trimap*
