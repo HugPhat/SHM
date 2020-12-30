@@ -45,8 +45,8 @@ class dice_loss(nn.Module):
         else:
             one_hot_target = target
 
-        one_hot_target = one_hot_target.float()
-        probas = F.softmax(pred.float(), dim=1)
+        one_hot_target = one_hot_target.float().detach() 
+        probas = torch.sigmoid(pred.float())
 
         dims = (0,) + tuple(range(2, target.ndimension()))
 
@@ -54,9 +54,9 @@ class dice_loss(nn.Module):
 
         _sum = torch.sum(probas + one_hot_target, dims)
 
-        dice = ((2. * intersection) / (_sum - intersection + self.eps)).mean()
+        dice = ((2. * intersection) / (_sum  + self.eps)).mean()
 
-        return dice
+        return 1. - dice
 
 if __name__ == '__main__':
     img = torch.rand(4, 3, 256, 256)
