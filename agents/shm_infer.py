@@ -19,8 +19,8 @@ class SHMInf(object):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        print(
-            "Creating SHM architecture and loading pretrained weights...")
+        #print(
+        #    "Creating SHM architecture and loading pretrained weights...")
 
         self.model = create_shm(backbone=config.backbone)
 
